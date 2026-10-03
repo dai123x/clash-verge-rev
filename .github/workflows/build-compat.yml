@@ -63,5 +63,21 @@ jobs:
             - **解决订阅不兼容问题**：彻底解决从 2.5.1 升级至 2.5.2+ 后，部分机场订阅由于 Inline Provider 逻辑与新内核 API 变更导致的节点丢失、Unknown 及解析超时错误。
             - **一键无缝切换**：在 `设置` -> `Clash 内核` 中可直接在 `Mihomo (最新版)`、`Mihomo Alpha` 与 `Mihomo Compat (v2.5.1)` 之间自由切换并自动重启。
             - **服务模式与 TUN 模式全面兼容**：兼容内核已同时注入 Service 守护服务和 TUN 驱动体系。
+
+            ### 💡 下载提示：
+            - 浏览器若提示「通常不会下载 …_setup.exe」，为未签名新文件的常规信誉提示（非病毒报告）：点 `···` → **保留** 即可；或直接下载 **.zip 版本**解压使用；
+            - 安装时若遇 SmartScreen「Windows 已保护你的电脑」：点 **更多信息 → 仍要运行**；
+            - 完整文档见仓库 `docs/COMPAT_EDITION.md`。
           # Compat 版不签名更新产物（无私钥），并清空官方更新源，防止客户端自动更新回官方版丢失兼容内核
           args: --target x86_64-pc-windows-msvc --config src-tauri/tauri.compat.conf.json
+
+      - name: Zip installer and upload (avoids browser download reputation warning)
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG_NAME: ${{ inputs.tag_name || github.ref_name }}
+        run: |
+          $exe = Get-ChildItem "src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis/*.exe" | Select-Object -First 1
+          $zip = "$($exe.BaseName).zip"
+          Compress-Archive -LiteralPath $exe.FullName -DestinationPath $zip -Force
+          gh release upload "$env:TAG_NAME" "$zip" --clobber
