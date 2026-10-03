@@ -40,7 +40,8 @@
 ⚠️ **已知问题：内置服务只有白名单补丁、缺校验上限补丁，服务模式点「安装/修复服务」仍会失败，请使用 compat.3+。**
 
 - **fix(service)**：`scripts/service-release.mjs` 改为从 `dai123x/clash-verge-service-ipc` fork 下载补丁版服务二进制（当时仅含白名单补丁）。
-- 文档补充下载警告指引；新增 zip 附加资产步骤（有路径 bug，实际未产出）。
+- **docs**：新增完整文档 `docs/COMPAT_EDITION.md`（原理、使用、构建、FAQ，fa08722）；README 移除推广与捐赠内容（d9efca4）；补充下载警告指引（b1e8283）。
+- **ci**：新增 zip 附加资产步骤（有路径 bug，实际未产出）。
 
 ## v2.5.8-compat.1（2026-10-03，提交 96750a8）
 
@@ -49,7 +50,6 @@
 - **feat(core)**：新增第三内核 `verge-mihomo-compat`（mihomo v1.19.25，对应官方 v2.5.1 内核时代），解决官方 v2.5.2+ 内核的 Inline Provider 逻辑与 API 变更导致的订阅节点丢失 / Unknown / 解析超时；「设置 → Clash 内核 ⚙」可在 Mihomo / Mihomo Alpha / **Mihomo Compat (v2.5.1)** 间一键切换并自动重启。
 - 兼容内核固定版本，不参与「升级内核」（明确提示）。
 - **fix(ci)**：compat 构建关闭 `createUpdaterArtifacts` 并清空 updater endpoints（fork 无签名私钥，且防止客户端自动更新回官方版丢失兼容内核）；compat 标签不再触发官方 release 工作流。
-- 新增完整文档 `docs/COMPAT_EDITION.md`（原理、使用、构建、FAQ），README 移除推广与捐赠内容。
 
 ---
 
