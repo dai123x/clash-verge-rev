@@ -27,9 +27,9 @@ A Clash Meta GUI based on <a href="https://github.com/tauri-apps/tauri">Tauri</a
 > | **升级保护** | 在线「升级内核」不会误覆盖兼容内核（固定 v1.19.25） |
 > | **自动更新已禁用** | 防止自动更新装回官方版丢失兼容内核，更新请回本仓库获取 |
 >
-> **📥 下载**：[本仓库 Releases](https://github.com/dai123x/clash-verge-rev/releases)（当前发布 `v2.5.8-compat.1`，Windows x64 安装包，支持从官方版直接覆盖安装）
+> **📥 下载**：[本仓库 Releases](https://github.com/dai123x/clash-verge-rev/releases)（当前发布 `v2.5.8-compat.4`，Windows x64 安装包，支持从官方版直接覆盖安装）
 >
-> **📖 完整说明**（使用教程 / 内核选择 / 与官方版差异 / 技术实现 / 自行构建 / FAQ）：**[docs/COMPAT_EDITION.md](./docs/COMPAT_EDITION.md)**
+> **📖 完整说明**（使用教程 / 内核选择 / 与官方版差异 / 技术实现 / 自行构建 / FAQ）：**[docs/COMPAT_EDITION.md](./docs/COMPAT_EDITION.md)**　|　**[📜 更新日志](./docs/CHANGELOG_COMPAT.md)**
 
 
 ## Preview
