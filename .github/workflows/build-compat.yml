@@ -77,7 +77,12 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           TAG_NAME: ${{ inputs.tag_name || github.ref_name }}
         run: |
-          $exe = Get-ChildItem "src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis/*.exe" | Select-Object -First 1
+          # Root Cargo workspace puts target/ at the repo root, not src-tauri/target/.
+          $exe = Get-ChildItem "target/x86_64-pc-windows-msvc/release/bundle/nsis/*.exe" -ErrorAction SilentlyContinue | Select-Object -First 1
+          if (-not $exe) {
+            $exe = Get-ChildItem -Path "." -Recurse -Filter "*-setup.exe" -ErrorAction SilentlyContinue |
+              Where-Object { $_.FullName -match 'bundle[\\/]nsis' } | Select-Object -First 1
+          }
           $zip = "$($exe.BaseName).zip"
           Compress-Archive -LiteralPath $exe.FullName -DestinationPath $zip -Force
           gh release upload "$env:TAG_NAME" "$zip" --clobber
