@@ -374,12 +374,20 @@ pub(super) async fn init_dns_config() -> Result<()> {
         (
             "nameserver".into(),
             Value::Sequence(vec![
-                Value::String("8.8.8.8".into()),
                 Value::String("https://doh.pub/dns-query".into()),
                 Value::String("https://dns.alidns.com/dns-query".into()),
             ]),
         ),
-        ("fallback".into(), Value::Sequence(vec![])),
+        // Non-empty on purpose: the merge layer (enhance::is_set) keeps the profile's own
+        // field when the override value is empty, and airport DNS sections commonly ship
+        // foreign fallback servers that hang for direct connections from CN networks.
+        (
+            "fallback".into(),
+            Value::Sequence(vec![
+                Value::String("https://doh.pub/dns-query".into()),
+                Value::String("https://dns.alidns.com/dns-query".into()),
+            ]),
+        ),
         (
             "nameserver-policy".into(),
             Value::Mapping(serde_yaml_ng::Mapping::new()),
