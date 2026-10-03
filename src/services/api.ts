@@ -39,23 +39,9 @@ interface ServiceConfig {
 }
 
 // 可用的IP检测服务列表及字段映射
+// 注：api.ipapi.is（接口长期失效）与 api.ip.sb（国内出口下常超时，最坏拖慢卡片 5-10s）
+// 已移除——留在列表里只会在随机轮询时白白消耗超时预算
 const IP_CHECK_SERVICES: ServiceConfig[] = [
-  {
-    url: 'https://api.ip.sb/geoip',
-    mapping: (data) => ({
-      ip: data.ip || '',
-      country_code: data.country_code || '',
-      country: data.country || '',
-      region: data.region || '',
-      city: data.city || '',
-      organization: data.organization || data.isp || '',
-      asn: data.asn || 0,
-      asn_organization: data.asn_organization || '',
-      longitude: data.longitude || 0,
-      latitude: data.latitude || 0,
-      timezone: data.timezone || '',
-    }),
-  },
   {
     url: 'https://ipapi.co/json',
     mapping: (data) => ({
@@ -70,22 +56,6 @@ const IP_CHECK_SERVICES: ServiceConfig[] = [
       longitude: data.longitude || 0,
       latitude: data.latitude || 0,
       timezone: data.timezone || '',
-    }),
-  },
-  {
-    url: 'https://api.ipapi.is/',
-    mapping: (data) => ({
-      ip: data.ip || '',
-      country_code: data.location?.country_code || '',
-      country: data.location?.country || '',
-      region: data.location?.state || '',
-      city: data.location?.city || '',
-      organization: data.asn?.org || data.company?.name || '',
-      asn: data.asn?.asn || 0,
-      asn_organization: data.asn?.org || '',
-      longitude: data.location?.longitude || 0,
-      latitude: data.location?.latitude || 0,
-      timezone: data.location?.timezone || '',
     }),
   },
   {
