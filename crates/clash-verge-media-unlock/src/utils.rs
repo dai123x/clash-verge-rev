@@ -50,6 +50,10 @@ pub(crate) async fn get_status_and_text(
     Some((status, response.text().await.ok()?))
 }
 
+pub(crate) async fn get_text(client: &Client, url: &str) -> Option<String> {
+    client.get(url).send().await.ok()?.text().await.ok()
+}
+
 pub(crate) async fn get_trace_location(client: &Client, url: &str) -> Option<String> {
     get_text(client, url)
         .await?
