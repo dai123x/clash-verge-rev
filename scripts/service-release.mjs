@@ -1,5 +1,6 @@
+// Compat fork: fetch the service binary patched to approve the verge-mihomo-compat core.
 const SERVICE_URL_PREFIX =
-  'https://github.com/clash-verge-rev/clash-verge-service-ipc/releases/download'
+  'https://github.com/dai123x/clash-verge-service-ipc/releases/download'
 
 export function resolveServiceRelease(cargoManifest, host, platform) {
   const dependency = cargoManifest
