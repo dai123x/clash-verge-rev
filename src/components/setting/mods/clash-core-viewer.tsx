@@ -10,6 +10,7 @@ import {
   List,
   ListItemButton,
   ListItemText,
+  Typography,
 } from '@mui/material'
 import { useLockFn } from 'ahooks'
 import type { Ref } from 'react'
@@ -33,6 +34,11 @@ const VALID_CORE = [
     name: 'Mihomo Alpha',
     core: 'verge-mihomo-alpha',
     chipKey: 'settings.modals.clashCore.variants.alpha',
+  },
+  {
+    name: 'Mihomo Compat (v2.5.1)',
+    core: 'verge-mihomo-compat',
+    chipKey: 'settings.modals.clashCore.variants.compat',
   },
 ]
 
@@ -144,9 +150,9 @@ export function ClashCoreViewer({ ref }: { ref?: Ref<DialogRef> }) {
         </Box>
       }
       contentSx={{
-        pb: 0,
+        pb: 1,
         width: 400,
-        height: 180,
+        maxHeight: 340,
         overflowY: 'auto',
         userSelect: 'text',
         marginTop: '-8px',
@@ -173,6 +179,20 @@ export function ClashCoreViewer({ ref }: { ref?: Ref<DialogRef> }) {
           </ListItemButton>
         ))}
       </List>
+      <Typography
+        variant="caption"
+        sx={{
+          display: 'block',
+          mt: 0.5,
+          mb: 1,
+          px: 1,
+          color: 'text.secondary',
+          fontSize: '11px',
+          lineHeight: 1.4,
+        }}
+      >
+        {t('settings.modals.clashCore.compatHint')}
+      </Typography>
     </BaseDialog>
   )
 }

@@ -942,8 +942,10 @@ export interface TranslationResources {
           }
         }
         clashCore: {
+          compatHint: string
           variants: {
             alpha: string
+            compat: string
             release: string
           }
         }

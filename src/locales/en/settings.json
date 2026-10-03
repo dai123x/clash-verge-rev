@@ -301,8 +301,10 @@
     "clashCore": {
       "variants": {
         "release": "Release Version",
-        "alpha": "Alpha Version"
-      }
+        "alpha": "Alpha Version",
+        "compat": "Compatible (v2.5.1)"
+      },
+      "compatHint": "💡 If subscription proxies show Unknown or fail to parse, switch to this compatible core (v1.19.25)."
     },
     "liteMode": {
       "title": "LightWeight Mode Settings",

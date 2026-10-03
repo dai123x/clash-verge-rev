@@ -1,0 +1,65 @@
+name: Build Compat Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: 'Release Tag Name (e.g. v2.5.8-compat.1)'
+        required: false
+        default: 'v2.5.8-compat.1'
+  push:
+    tags:
+      - 'v*-compat*'
+
+permissions: write-all
+
+jobs:
+  build-windows:
+    name: Build Windows x64 (Compat Edition)
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install Rust Stable
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: '1.98.1'
+          targets: x86_64-pc-windows-msvc
+
+      - name: Install Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24.21.0'
+
+      - uses: pnpm/action-setup@v4
+        name: Install pnpm
+        with:
+          run_install: false
+
+      - name: Install dependencies & run prebuild
+        run: |
+          pnpm install --no-frozen-lockfile
+          pnpm run prebuild x86_64-pc-windows-msvc
+        shell: bash
+
+      - name: Build Tauri
+        uses: tauri-apps/tauri-action@v0.5.23
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NODE_OPTIONS: '--max_old_space_size=4096'
+        with:
+          tagName: ${{ inputs.tag_name || github.ref_name }}
+          releaseName: 'Clash Verge Rev Compat Edition ${{ inputs.tag_name || github.ref_name }}'
+          releaseBody: |
+            ## 🚀 Clash Verge Rev (Compat Edition / 双内核兼容版)
+
+            本版本在官方 Clash Verge Rev 的基础上增加了 **v2.5.1 稳定兼容内核（Mihomo v1.19.25）** 一键切换支持。
+
+            ### ✨ 核心改进：
+            - **解决订阅不兼容问题**：彻底解决从 2.5.1 升级至 2.5.2+ 后，部分机场订阅由于 Inline Provider 逻辑与新内核 API 变更导致的节点丢失、Unknown 及解析超时错误。
+            - **一键无缝切换**：在 `设置` -> `Clash 内核` 中可直接在 `Mihomo (最新版)`、`Mihomo Alpha` 与 `Mihomo Compat (v2.5.1)` 之间自由切换并自动重启。
+            - **服务模式与 TUN 模式全面兼容**：兼容内核已同时注入 Service 守护服务和 TUN 驱动体系。
+          args: --target x86_64-pc-windows-msvc

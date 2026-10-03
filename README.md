@@ -12,13 +12,15 @@ A Clash Meta GUI based on <a href="https://github.com/tauri-apps/tauri">Tauri</a
 <p align="center">
   Languages:
   <a href="./README.md">简体中文</a> ·
-  <a href="./docs/README_en.md">English</a> ·
-  <a href="./docs/README_es.md">Español</a> ·
-  <a href="./docs/README_ru.md">Русский</a> ·
-  <a href="./docs/README_ja.md">日本語</a> ·
-  <a href="./docs/README_ko.md">한국어</a> ·
-  <a href="./docs/README_fa.md">فارسی</a>
+  <a href="./docs/README_en.md">English</a>
 </p>
+
+> ### 🌟 特别定制：Compat Edition（双内核兼容版）
+> 本分支旨在解决 **从 Clash Verge Rev v2.5.1 升级至 v2.5.2+ 后，部分机场订阅因 Inline Provider 解析与 Mihomo 新版 API 变更导致的节点丢失 / Unknown / 超时问题**。
+>
+> * **内置双内核切换**：保留最新 Mihomo 内核的同时，集成 **v2.5.1 稳定兼容内核（Mihomo v1.19.25）**。
+> * **一键无缝切换**：在客户端界面的 `设置` -> `Clash 内核` 中可直接自由切换并自动重启，老旧订阅无需任何改动即可恢复正常运行。
+> * **全功能支持**：完整支持 Windows 系统服务模式与 TUN 模式。
 
 ## Preview
 

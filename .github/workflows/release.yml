@@ -1,6 +1,7 @@
 name: Release Build
 
 on:
+  workflow_dispatch:
   push:
     # -rc tag 时预览发布, 跳过 telegram 通知、跳过 winget 提交、跳过 latest.json 文件更新
     tags:
@@ -25,6 +26,7 @@ jobs:
           fetch-depth: 0
 
       - name: Check if tag is from main branch
+        if: ${{ github.repository == 'clash-verge-rev/clash-verge-rev' }}
         run: |
           TAG_REF="${GITHUB_REF##*/}"
           echo "Checking if tag $TAG_REF is from main branch..."
@@ -107,7 +109,7 @@ jobs:
           echo "TAG_NAME=$TAG_REF" >> $GITHUB_ENV
           VERSION=$(echo "$TAG_REF" | sed 's/^v//')
           echo "VERSION=$VERSION" >> $GITHUB_ENV
-          echo "DOWNLOAD_URL=https://github.com/clash-verge-rev/clash-verge-rev/releases/download/$TAG_REF" >> $GITHUB_ENV
+          echo "DOWNLOAD_URL=https://github.com/${{ github.repository }}/releases/download/$TAG_REF" >> $GITHUB_ENV
         shell: bash
 
       - run: |
@@ -653,7 +655,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install jq
           echo "VERSION=$(cat package.json | jq '.version' | tr -d '"')" >> $GITHUB_ENV
-          echo "DOWNLOAD_URL=https://github.com/clash-verge-rev/clash-verge-rev/releases/download/v$(cat package.json | jq '.version' | tr -d '"')" >> $GITHUB_ENV
+          echo "DOWNLOAD_URL=https://github.com/${{ github.repository }}/releases/download/v$(cat package.json | jq '.version' | tr -d '"')" >> $GITHUB_ENV
           echo "BUILDTIME=$(TZ=Asia/Shanghai date)" >> $GITHUB_ENV
 
       - name: Generate release.txt

@@ -301,8 +301,10 @@
     "clashCore": {
       "variants": {
         "release": "正式版",
-        "alpha": "预览版"
-      }
+        "alpha": "预览版",
+        "compat": "兼容版 (v2.5.1)"
+      },
+      "compatHint": "💡 若遇到订阅节点报错、显示 Unknown 或无法解析，请切换至兼容版内核 (v1.19.25)。"
     },
     "liteMode": {
       "title": "轻量模式设置",

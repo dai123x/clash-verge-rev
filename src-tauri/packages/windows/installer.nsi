@@ -598,6 +598,22 @@ FunctionEnd
     !endif
   ${EndIf}
 
+  ; Check if verge-mihomo-compat.exe is running
+  !if "${INSTALLMODE}" == "currentUser"
+    nsis_tauri_utils::FindProcessCurrentUser "verge-mihomo-compat.exe"
+  !else
+    nsis_tauri_utils::FindProcess "verge-mihomo-compat.exe"
+  !endif
+  Pop $R0
+  ${If} $R0 = 0
+    DetailPrint "Kill verge-mihomo-compat.exe..."
+    !if "${INSTALLMODE}" == "currentUser"
+      nsis_tauri_utils::KillProcessCurrentUser "verge-mihomo-compat.exe"
+    !else
+      nsis_tauri_utils::KillProcess "verge-mihomo-compat.exe"
+    !endif
+  ${EndIf}
+
   ; Check if clash-meta-alpha.exe is running
   !if "${INSTALLMODE}" == "currentUser"
     nsis_tauri_utils::FindProcessCurrentUser "clash-meta-alpha.exe"
@@ -978,6 +994,12 @@ Section Install
     Pop $0
     ${IfThen} $0 != 0 ${|} DetailPrint "Staging verge-mihomo-alpha returned $0" ${|}
   !endif
+  !ifdef MIHOMO_COMPAT_SHA256
+    DetailPrint "Staging verge-mihomo-compat for ${PRODUCTNAME} Service..."
+    nsExec::ExecToLog '"$INSTDIR\resources\clash-verge-service-install.exe" --install-core "$INSTDIR\verge-mihomo-compat.exe" --sha256 "${MIHOMO_COMPAT_SHA256}"'
+    Pop $0
+    ${IfThen} $0 != 0 ${|} DetailPrint "Staging verge-mihomo-compat returned $0" ${|}
+  !endif
 
   !insertmacro StartVergeService
 
@@ -1154,6 +1176,7 @@ Section Uninstall
   ; A failed core upgrade leaves the displaced binary behind; it is never user data.
   Delete "$INSTDIR\verge-mihomo.old"
   Delete "$INSTDIR\verge-mihomo-alpha.old"
+  Delete "$INSTDIR\verge-mihomo-compat.old"
 
   ; Delete app associations
   {{#each file_associations as |association| ~}}

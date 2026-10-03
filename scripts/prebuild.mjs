@@ -298,6 +298,21 @@ function clashMeta() {
   }
 }
 
+const META_COMPAT_VERSION = 'v1.19.25'
+
+function clashMetaCompat() {
+  const name = META_MAP[`${platform}-${arch}`]
+  const isWin = platform === 'win32'
+  const urlExt = isWin ? 'zip' : 'gz'
+  return {
+    name: 'verge-mihomo-compat',
+    targetFile: `verge-mihomo-compat-${SIDECAR_HOST}${isWin ? '.exe' : ''}`,
+    exeFile: `${name}${isWin ? '.exe' : ''}`,
+    zipFile: `${name}-${META_COMPAT_VERSION}.${urlExt}`,
+    downloadURL: `${META_URL_PREFIX}/${META_COMPAT_VERSION}/${name}-${META_COMPAT_VERSION}.${urlExt}`,
+  }
+}
+
 async function downloadFile(url, outPath) {
   const options = {}
   const httpProxy =
@@ -681,6 +696,7 @@ async function resolveCoreHashes() {
   for (const [define, name] of [
     ['MIHOMO_SHA256', 'verge-mihomo'],
     ['MIHOMO_ALPHA_SHA256', 'verge-mihomo-alpha'],
+    ['MIHOMO_COMPAT_SHA256', 'verge-mihomo-compat'],
   ]) {
     const sidecar = path.join(SIDECAR_DIR, `${name}-${SIDECAR_HOST}.exe`)
     const digest = createHash('sha256')
@@ -740,6 +756,11 @@ const tasks = [
     name: 'verge-mihomo',
     func: () =>
       getLatestReleaseVersion().then(() => resolveSidecar(clashMeta())),
+    retry: 5,
+  },
+  {
+    name: 'verge-mihomo-compat',
+    func: () => resolveSidecar(clashMetaCompat()),
     retry: 5,
   },
   // After both sidecar tasks: it hashes what they downloaded.
