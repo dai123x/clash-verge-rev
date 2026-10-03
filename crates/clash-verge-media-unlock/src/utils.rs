@@ -39,8 +39,15 @@ fn alpha2_to_emoji(alpha2: &str) -> String {
         .unwrap_or_default()
 }
 
-pub(crate) async fn get_text(client: &Client, url: &str) -> Option<String> {
-    client.get(url).send().await.ok()?.text().await.ok()
+/// Fetches a URL and reports the HTTP status alongside the body so callers can
+/// tell an explicit block (403/451) apart from a network-level failure.
+pub(crate) async fn get_status_and_text(
+    client: &Client,
+    url: &str,
+) -> Option<(StatusCode, String)> {
+    let response = client.get(url).send().await.ok()?;
+    let status = response.status();
+    Some((status, response.text().await.ok()?))
 }
 
 pub(crate) async fn get_trace_location(client: &Client, url: &str) -> Option<String> {

@@ -1,6 +1,6 @@
-use reqwest::Client;
+use reqwest::{Client, StatusCode};
 
-use crate::utils::{get_text, get_trace_location};
+use crate::utils::{get_status_and_text, get_trace_location};
 
 use super::UnlockItem;
 
@@ -11,16 +11,20 @@ pub(super) async fn check_chatgpt(client: &Client) -> UnlockItem {
         .await
         .map(|loc| UnlockItem::region_label(&loc));
 
-    let web_status = get_text(client, "https://api.openai.com/compliance/cookie_requirements")
-        .await
-        .map(|body| {
-            if body.to_ascii_lowercase().contains("unsupported_country") {
-                "Unsupported Country/Region"
-            } else {
-                "Yes"
+    // api.openai.com sits behind Cloudflare: an exit IP OpenAI refuses gets a 403
+    // challenge page whose body must not be read as a successful compliance check.
+    let web_status =
+        match get_status_and_text(client, "https://api.openai.com/compliance/cookie_requirements").await {
+            Some((StatusCode::FORBIDDEN | StatusCode::UNAVAILABLE_FOR_LEGAL_REASONS, _)) => "No",
+            Some((status, body)) if status.is_success() => {
+                if body.to_ascii_lowercase().contains("unsupported_country") {
+                    "Unsupported Country/Region"
+                } else {
+                    "Yes"
+                }
             }
-        })
-        .unwrap_or("Failed");
+            _ => "Failed",
+        };
 
     UnlockItem::checked(CHATGPT_WEB_NAME, web_status, region)
 }
