@@ -173,7 +173,7 @@ pnpm prebuild x86_64-unknown-linux-gnu  # Linux x86_64
 pnpm build:compat
 ```
 
-> **服务二进制来源说明**：客户端 prebuild 的服务包从上游 [clash-verge-rev/clash-verge-service-ipc](https://github.com/clash-verge-rev/clash-verge-service-ipc/releases) 下载（上游已发布 macOS / Linux / Windows 全平台资产），因此 macOS 与 Linux 自建可以开箱即用。本 fork 自行发布的 [clash-verge-service-ipc](https://github.com/dai123x/clash-verge-service-ipc/releases) 仅含 Windows x64——兼容补丁针对的是 Windows 服务通信问题，其他平台直接使用上游服务即可；如确需在其他平台运行打过补丁的服务，请从 fork 源码构建：`cargo build --release --features "standalone,client"`。
+> **服务二进制来源说明**：客户端 prebuild 的服务包从本组织的 [clash-verge-service-ipc](https://github.com/dai123x/clash-verge-service-ipc/releases) fork 下载（该服务已打上放行 `verge-mihomo-compat` 内核的补丁）。**v2.7.6 仅发布过 Windows x64 资产**，在此版本上做 macOS / Linux 自建会在服务下载一步失败；服务 fork 的发布矩阵已扩展，**v2.7.7 及之后的 tag 将自动补齐 macOS（x86_64 / aarch64）与 Linux x86_64 资产**，届时三平台自建均可开箱即用。过渡期如需在其他平台自建：把 `src-tauri/Cargo.toml` 中 `clash_verge_service_ipc` 依赖临时改为指向 [服务 fork 本地克隆](https://github.com/dai123x/clash-verge-service-ipc) 的 `path` 依赖，prebuild 会检测到 `path` 依赖并自动从源码构建打过补丁的服务。
 
 ### 使用 GitHub Actions 云端构建
 
