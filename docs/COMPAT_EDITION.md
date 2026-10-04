@@ -160,6 +160,21 @@ pnpm build:compat                      # 产出 NSIS 安装包
 >
 > 自建必须使用 `pnpm build:compat`（即叠加 `src-tauri/tauri.compat.conf.json`），与 CI 构建方式一致：它会关闭 updater 产物并清空官方更新源。直接运行 `pnpm build` 得到的是带官方更新通道的普通版，且本地缺少 `TAURI_SIGNING_PRIVATE_KEY` 时会因 `createUpdaterArtifacts` 直接报错。
 
+### macOS / Linux 构建
+
+```bash
+git clone https://github.com/dai123x/clash-verge-rev.git
+cd clash-verge-rev
+pnpm install
+# 按目标平台任选其一执行 prebuild：
+pnpm prebuild x86_64-apple-darwin       # macOS (Intel)
+pnpm prebuild aarch64-apple-darwin      # macOS (Apple Silicon)
+pnpm prebuild x86_64-unknown-linux-gnu  # Linux x86_64
+pnpm build:compat
+```
+
+> **服务二进制来源说明**：客户端 prebuild 的服务包从上游 [clash-verge-rev/clash-verge-service-ipc](https://github.com/clash-verge-rev/clash-verge-service-ipc/releases) 下载（上游已发布 macOS / Linux / Windows 全平台资产），因此 macOS 与 Linux 自建可以开箱即用。本 fork 自行发布的 [clash-verge-service-ipc](https://github.com/dai123x/clash-verge-service-ipc/releases) 仅含 Windows x64——兼容补丁针对的是 Windows 服务通信问题，其他平台直接使用上游服务即可；如确需在其他平台运行打过补丁的服务，请从 fork 源码构建：`cargo build --release --features "standalone,client"`。
+
 ### 使用 GitHub Actions 云端构建
 
 1. 打开仓库的 [Actions 页面](https://github.com/dai123x/clash-verge-rev/actions/workflows/build-compat.yml)；
