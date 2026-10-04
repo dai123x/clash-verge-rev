@@ -153,10 +153,12 @@ git clone https://github.com/dai123x/clash-verge-rev.git
 cd clash-verge-rev
 pnpm install
 pnpm prebuild x86_64-pc-windows-msvc   # 下载三个内核与资源，含 SHA256 校验
-pnpm build                             # 产出 NSIS 安装包
+pnpm build:compat                      # 产出 NSIS 安装包
 ```
 
 > 前置要求：Node.js 20+、pnpm、Rust stable（含 `x86_64-pc-windows-msvc` target）。
+>
+> 自建必须使用 `pnpm build:compat`（即叠加 `src-tauri/tauri.compat.conf.json`），与 CI 构建方式一致：它会关闭 updater 产物并清空官方更新源。直接运行 `pnpm build` 得到的是带官方更新通道的普通版，且本地缺少 `TAURI_SIGNING_PRIVATE_KEY` 时会因 `createUpdaterArtifacts` 直接报错。
 
 ### 使用 GitHub Actions 云端构建
 
