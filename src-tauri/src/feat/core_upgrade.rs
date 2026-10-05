@@ -46,7 +46,7 @@ pub async fn upgrade_core(force: bool) -> Result<CoreUpgradeReport> {
     let _serialized = UPGRADE_LOCK.lock().await;
     let core = Config::verge().await.latest_arc().get_valid_clash_core();
     if core == "verge-mihomo-compat" {
-        bail!("兼容版内核固定为稳定版本(v1.19.25)，无需且不支持在线升级");
+        bail!("the compat core is pinned to its stable version (v1.19.25); online upgrade is neither needed nor supported");
     }
     tracing::Span::current().record("core", tracing::field::display(&core));
     let alpha = core.ends_with("-alpha");
