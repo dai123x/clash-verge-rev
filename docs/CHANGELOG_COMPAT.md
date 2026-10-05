@@ -12,11 +12,19 @@
 
 1. **内核名白名单放行 `verge-mihomo-compat`**：上游服务在 5 处硬编码只认 `verge-mihomo` / `verge-mihomo-alpha`，导致服务模式切换兼容内核时报 `unsupported core name verge-mihomo-compat.exe`（涉及 core 暂存校验、已装内核检查、安装器自动暂存列表、运行中进程检查）。
 2. **安装校验上限 2 → 8**：上游硬编码 "at most two cores can be inspected"，而客户端安装服务时一次性提交 3 个内核，校验必然失败。
-3. **构建矩阵裁剪**：只保留 `x86_64-pc-windows-msvc`（客户端 Windows 预构建唯一消费的目标），加快发布。
+3. **进程检查覆盖 Linux comm 截断**：Linux 进程名上限 15 字符（`TASK_COMM_LEN = 16` 含 NUL），兼容内核在进程列表中显示为 `verge-mihomo-co`，已将其与 `verge-mihomo-al` 一并纳入残留进程检查（带单元测试）。
+4. **构建矩阵**：覆盖全部客户端平台（Windows x86_64、macOS arm64/x86_64、Linux x86_64），未配置签名证书时 macOS 产物 ad-hoc 签名兜底；客户端 Windows 预构建只消费其中的 `x86_64-pc-windows-msvc` 产物。
 
 客户端 `scripts/service-release.mjs` 的下载地址同步指向 fork 仓库。
 
 ---
+
+## v2.5.8-compat.6（未发布，提交见 dev）
+
+- **chore(sync)**：合并官方 `dev`（10 个提交），含多项 Windows 实际修复——单实例锁文件权限原地修复（`4a0882fc`）、不再等待无法随 Windows 启动的服务（`57c54840`）、代理组内 provider 成员按组解析（`a9a3cfa3`）、混合端口编辑改用保存值而非会话回退（`7cc6c1ed`），以及 npm/cargo 依赖与 Rust 1.99 工具链更新。
+- **fix(tray)**：收编托盘菜单事件通道修复——解决托盘菜单使用一段时间后所有菜单项（含「退出」）点击无响应的问题（上游 issue #8159）。菜单内容签名未变时跳过重建、菜单对象改在主线程构建、弹出期间延迟破坏性替换（`cf30d416`），并对原生菜单替换增加兜底保护（`1f71295c`）。对应上游 PR #8164 已被关闭，本 fork 将其作为自有补丁长期维护。
+- **fix(ci)**：`build-compat.yml` 的 `GITHUB_TOKEN` 权限从 `write-all` 收紧到 `contents: write`；发布产物附带 `SHA256SUMS.txt`（exe + zip，sha256sum 兼容格式），下载后可自行校验完整性。
+- **fix(i18n)**：「升级内核」拒绝兼容内核的报错从中文改为英文（与同文件其他报错风格一致）；内核选择器底部提示改为明确标注对应关系——列表中的「(v2.5.1)」指 Clash Verge 版本，兼容内核实际是其中的 Mihomo v1.19.25。
 
 ## v2.5.8-compat.5（2026-10-04，提交见 dev）
 
