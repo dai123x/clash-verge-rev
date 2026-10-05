@@ -11,7 +11,8 @@ on:
     tags:
       - 'v*-compat*'
 
-permissions: write-all
+permissions:
+  contents: write
 
 jobs:
   build-windows:
@@ -123,4 +124,9 @@ jobs:
           }
           $zip = "$($exe.BaseName).zip"
           Compress-Archive -LiteralPath $exe.FullName -DestinationPath $zip -Force
-          gh release upload "$env:TAG_NAME" "$zip" --clobber
+          # Publish verifiable checksums so users can validate downloads without trusting the browser.
+          $hashLines = Get-FileHash -Algorithm SHA256 -LiteralPath $exe.FullName, $zip |
+            ForEach-Object { "$($_.Hash.ToLower())  $((Split-Path -Path $_.Path -Leaf))" }
+          Set-Content -Path "SHA256SUMS.txt" -Value $hashLines -Encoding ascii
+          Get-Content "SHA256SUMS.txt"
+          gh release upload "$env:TAG_NAME" "$zip" "SHA256SUMS.txt" --clobber
