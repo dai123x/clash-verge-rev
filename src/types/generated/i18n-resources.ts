@@ -227,6 +227,7 @@ export interface TranslationResources {
           }
           locationRefusedMessage: string
           message: string
+          notAutoStartedMessage: string
           reinstall: string
           repair: string
           success: string
@@ -963,9 +964,12 @@ export interface TranslationResources {
           messages: {
             automaticFallback: string
             automaticFallbackFailed: string
+            duplicatePort: string
+            invalidPort: string
             portInUse: string
             portTooHigh: string
             portTooLow: string
+            runningPort: string
             saved: string
             saveFailed: string
           }
