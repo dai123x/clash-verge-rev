@@ -307,7 +307,7 @@
         "alpha": "Alpha Version",
         "compat": "Compatible (v2.5.1)"
       },
-      "compatHint": "💡 If subscription proxies show Unknown or fail to parse, switch to this compatible core (v1.19.25)."
+      "compatHint": "💡 If subscription proxies show Unknown or fail to parse, switch to this compatible core. It is the Mihomo v1.19.25 bundled with Clash Verge v2.5.1, pinned and never upgraded online."
     },
     "liteMode": {
       "title": "LightWeight Mode Settings",

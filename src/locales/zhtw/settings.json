@@ -307,7 +307,7 @@
         "alpha": "預覽版",
         "compat": "相容版 (v2.5.1)"
       },
-      "compatHint": "💡 若遇到訂閱節點報錯、顯示 Unknown 或無法解析，請切換至相容版核心 (v1.19.25)。"
+      "compatHint": "💡 若遇到訂閱節點報錯、顯示 Unknown 或無法解析，請切換至相容版核心。相容版即 Clash Verge v2.5.1 內建的 Mihomo v1.19.25，固定不在線升級。"
     },
     "liteMode": {
       "title": "輕量模式設定",
