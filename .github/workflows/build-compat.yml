@@ -51,6 +51,14 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NODE_OPTIONS: '--max_old_space_size=4096'
+          # Azure Trusted Signing 代码签名（可选）：配置以下 secrets 后安装包自动带签名，
+          # 浏览器 / SmartScreen 不再弹「未知发布者」警告；未配置时构建行为与之前完全一致
+          AZURE_SIGNING_ENDPOINT: ${{ secrets.AZURE_SIGNING_ENDPOINT }}
+          AZURE_SIGNING_ACCOUNT_NAME: ${{ secrets.AZURE_SIGNING_ACCOUNT_NAME }}
+          AZURE_SIGNING_CERT_PROFILE_NAME: ${{ secrets.AZURE_SIGNING_CERT_PROFILE_NAME }}
+          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
         with:
           tagName: ${{ inputs.tag_name || github.ref_name }}
           releaseName: 'Clash Verge Rev Compat Edition ${{ inputs.tag_name || github.ref_name }}'
@@ -81,8 +89,8 @@ jobs:
 
             ### 💡 下载提示
 
-            - 下载 exe 时浏览器若提示 **「通常不会下载 Clash.Verge_2.5.8_x64-setup.exe。请在打开前确保信任」**：这是 Windows 对**未经代码签名**且下载信誉尚未积累的新文件的**标准信誉提示，不是病毒报告**。点击下载项右侧 `···` → **「保留」**（如出现二次确认选 **「仍然保留」**）即可；
-            - 不想遇到该提示，可直接下载 **`.zip` 版本**（浏览器不拦截 zip），解压后得到完全相同的安装包；
+            - 本流水线已接入 **Azure Trusted Signing 代码签名**：签名凭据生效后的版本，安装包自带数字签名（右键安装包 → 属性 → 数字签名 可查看），Windows 与主流浏览器对 exe 的「不常见下载 / 未知发布者」信誉提示将不再出现；
+            - 若下载的是凭据配置之前的**历史未签名版本**，浏览器可能提示 **「通常不会下载 Clash.Verge_2.5.8_x64-setup.exe。请在打开前确保信任」**：这是标准信誉提示，**不是病毒报告**，点击下载项右侧 `···` → **「保留」**（如出现二次确认选 **「仍然保留」**）即可，或直接下载 **`.zip` 版本**（浏览器不拦截 zip），解压后得到完全相同的安装包；
             - 安装时若遇 SmartScreen 蓝色提示 **「Windows 已保护你的电脑」**：点击 **「更多信息」→「仍要运行」**；
             - 安装包直接发布于 GitHub Releases 官方存储，未经任何第三方改动；对来源有更高要求的用户可参照仓库文档自行构建；
             - 每个版本附带 **`SHA256SUMS.txt`**（sha256sum 格式），下载后可用 `sha256sum -c` 或 `Get-FileHash` 自行校验安装包完整性。

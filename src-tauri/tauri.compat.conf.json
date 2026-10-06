@@ -1,6 +1,12 @@
 {
   "bundle": {
-    "createUpdaterArtifacts": false
+    "createUpdaterArtifacts": false,
+    "windows": {
+      "signCommand": {
+        "cmd": "powershell.exe",
+        "args": ["-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "scripts/sign-file.ps1", "%1"]
+      }
+    }
   },
   "plugins": {
     "updater": {

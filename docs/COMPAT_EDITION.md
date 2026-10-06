@@ -134,7 +134,7 @@
 | Windows 安装器 | `src-tauri/packages/windows/installer.nsi` | 打包兼容内核、进程互斥检测、服务注册、卸载清理 `.old` |
 | 构建预下载 | `scripts/prebuild.mjs` | 下载 mihomo v1.19.25 并计算三内核 SHA256 |
 | 开发服务 | `scripts/dev-service.mjs` | 开发模式服务安装同样带上兼容内核 |
-| 构建覆盖 | `src-tauri/tauri.compat.conf.json` | 仅 compat 构建：关闭更新签名产物 + 清空更新源（见第六节） |
+| 构建覆盖 | `src-tauri/tauri.compat.conf.json` | 仅 compat 构建：关闭更新签名产物 + 清空更新源 + 接入 Windows 代码签名命令（见第九节 Q9） |
 | CI 流水线 | `.github/workflows/build-compat.yml` | 一键云端打包（Windows x64），tag `v*-compat*` 或手动触发 |
 | CI 触发隔离 | `.github/workflows/release.yml` | 官方全平台构建排除 compat 标签，避免无意义的连带失败 |
 
@@ -182,6 +182,19 @@ pnpm build:compat
 3. 可自定义 Release 标签名（默认 `v2.5.8-compat.1`），确认后自动构建并发布；
 4. 推送任意匹配 `v*-compat*` 的标签也会自动触发。
 
+### Windows 代码签名（仓库维护者）
+
+安装包通过 **Azure Trusted Signing** 签名。CI 中的签名命令（`scripts/sign-file.ps1`）检测到以下仓库 Secrets 才执行签名，否则自动跳过、产物与未签名时完全一致：
+
+| Secret | 说明 |
+| :--- | :--- |
+| `AZURE_SIGNING_ENDPOINT` | Trusted Signing 账户 Endpoint，如 `https://eus.codesigning.azure.net/` |
+| `AZURE_SIGNING_ACCOUNT_NAME` | Trusted Signing 账户名 |
+| `AZURE_SIGNING_CERT_PROFILE_NAME` | Public Trust 证书配置文件名 |
+| `AZURE_TENANT_ID` / `AZURE_CLIENT_ID` / `AZURE_CLIENT_SECRET` | 拥有 Trusted Signing「Certificate Profile Signer」角色的 Entra 应用注册凭据 |
+
+开启流程：Azure 订阅中创建 Trusted Signing 账户与 **Public Trust** 证书 Profile（Basic 档按月订阅），完成身份校验后创建 Entra 应用注册并授予上述角色，再把上表 Secrets 添加到仓库即可。此后每个 compat 标签构建出的主程序、内核与安装包都会自动带数字签名，浏览器与 SmartScreen 的「未知发布者」提示随之消失。
+
 ---
 
 ## 九、常见问题 FAQ
@@ -210,9 +223,9 @@ Compat Edition 已禁用自动更新（避免自动装回官方版丢失兼容�
 **Q8：支持 macOS / Linux 吗？**
 客户端本身跨平台，但当前 CI 只额外产出 Windows x64 安装包；其他平台请参照[第八节](#八自行构建指南)自行构建。
 
-**Q9：下载时浏览器提示「通常不会下载 …_setup.exe。请在打开前确保信任」，或运行时 SmartScreen 提示「Windows 已保护你的电脑」怎么办？**
+**Q9：下载时浏览器提示「通常不会下载 …_setup.exe」，或运行时 SmartScreen 提示「Windows 已保护你的电脑」怎么办？**
 
-这是 Windows / Edge / Chrome 对**未经代码签名证书签名**且下载信誉尚未积累的新文件的**标准信誉提示，不是病毒报告**（本项目为个人开源分支，未购买代码签名证书）。处理方式任选其一：
+这是 Windows / Edge / Chrome 对**未经代码签名**且下载信誉尚未积累的新文件的**标准信誉提示，不是病毒报告**。本仓库 CI 已接入 **Azure Trusted Signing 代码签名**：签名生效后的新版安装包自带数字签名（右键安装包 → 属性 → 数字签名 可查看），正常情况下不会再出现上述提示。若下载的是凭据配置之前的**历史未签名版本**，处理方式任选其一：
 
 - **浏览器提示**：在下载记录的 `···` 菜单中选 **「保留」**；若出现二次确认，选 **「仍然保留」**；
 - **不想看到提示**：直接下载 **`.zip` 版本**（浏览器不拦截 zip），解压后得到完全相同的安装包；
