@@ -13,6 +13,8 @@ on:
 
 permissions:
   contents: write
+  id-token: write
+  attestations: write
 
 jobs:
   build-windows:
@@ -93,7 +95,8 @@ jobs:
             - 若下载的是凭据配置之前的**历史未签名版本**，浏览器可能提示 **「通常不会下载 Clash.Verge_2.5.8_x64-setup.exe。请在打开前确保信任」**：这是标准信誉提示，**不是病毒报告**，点击下载项右侧 `···` → **「保留」**（如出现二次确认选 **「仍然保留」**）即可，或直接下载 **`.zip` 版本**（浏览器不拦截 zip），解压后得到完全相同的安装包；
             - 安装时若遇 SmartScreen 蓝色提示 **「Windows 已保护你的电脑」**：点击 **「更多信息」→「仍要运行」**；
             - 安装包直接发布于 GitHub Releases 官方存储，未经任何第三方改动；对来源有更高要求的用户可参照仓库文档自行构建；
-            - 每个版本附带 **`SHA256SUMS.txt`**（sha256sum 格式），下载后可用 `sha256sum -c` 或 `Get-FileHash` 自行校验安装包完整性。
+            - 每个版本附带 **`SHA256SUMS.txt`**（sha256sum 格式），下载后可用 `sha256sum -c` 或 `Get-FileHash` 自行校验安装包完整性；
+            - 本仓库已启用 **GitHub 构建来源签名（Artifact Attestations）**：安装包的 sha256 摘要附有 sigstore 签名存证，安装 [GitHub CLI](https://cli.github.com/) 后执行 `gh attestation verify Clash.Verge_2.5.8_x64-setup.exe -R dai123x/clash-verge-rev` 即可验证「文件确由本仓库流水线构建、未被第三方篡改」。
 
             ### 📖 使用方法
 
@@ -139,3 +142,14 @@ jobs:
           Set-Content -Path "SHA256SUMS.txt" -Value $hashLines -Encoding ascii
           Get-Content "SHA256SUMS.txt"
           gh release upload "$env:TAG_NAME" "$zip" "SHA256SUMS.txt" --clobber
+
+      # GitHub 构建来源签名：给 exe / zip / SHA256SUMS.txt 生成 sigstore 存证，
+      # 用户可用 `gh attestation verify <file> -R <repo>` 验证文件出自本仓库且未被篡改。
+      # 历史版本补签走 attest-release.yml（手动触发）。
+      - name: Generate build provenance attestations
+        uses: actions/attest-build-provenance@v4
+        with:
+          subject-path: |
+            target/x86_64-pc-windows-msvc/release/bundle/nsis/*-setup.exe
+            *-setup.zip
+            SHA256SUMS.txt

@@ -1,0 +1,53 @@
+name: Attest Release Assets
+
+# 为已发布 Release 的资产补发 GitHub Artifact Attestations（sigstore 构建来源签名）。
+# 存证把「文件 sha256 摘要 = 本仓库流水线构建」绑定在一起，任何人可用
+# `gh attestation verify <file> -R dai123x/clash-verge-rev` 验证未被第三方篡改。
+# 常规构建的自动签发在 build-compat.yml 内完成，本工作流用于给历史版本补签。
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: 'Release tag to attest (e.g. v2.5.8-compat.6); empty = latest compat release'
+        required: false
+        default: ''
+
+permissions:
+  contents: read
+  id-token: write
+  attestations: write
+
+jobs:
+  attest:
+    name: Attest release assets
+    runs-on: ubuntu-latest
+    steps:
+      - name: Resolve tag
+        id: tag
+        env:
+          GH_TOKEN: ${{ github.token }}
+          INPUT_TAG: ${{ inputs.tag_name }}
+        run: |
+          if [ -n "$INPUT_TAG" ]; then
+            echo "tag=$INPUT_TAG" >> "$GITHUB_OUTPUT"
+          else
+            tag=$(gh api "repos/$GITHUB_REPOSITORY/releases" \
+              --jq '[.[] | select(.tag_name | test("-compat"))][0].tag_name')
+            echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          fi
+          echo "Attesting release: $(cat "$GITHUB_OUTPUT" | grep '^tag=' | cut -d= -f2)"
+
+      - name: Download release assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.tag.outputs.tag }}
+        run: gh release download "$TAG" -R "$GITHUB_REPOSITORY" -D dist --clobber
+
+      - name: Generate build provenance attestations
+        uses: actions/attest-build-provenance@v4
+        with:
+          subject-path: |
+            dist/*-setup.exe
+            dist/*-setup.zip
+            dist/SHA256SUMS.txt
