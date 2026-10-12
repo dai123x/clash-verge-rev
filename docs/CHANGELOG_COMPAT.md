@@ -19,6 +19,12 @@
 
 ---
 
+## v2.5.8-compat.7（待发布）
+
+- **fix(ci)**：Azure Trusted Signing 代码签名脚本（`scripts/sign-file.ps1`）补充 RFC 3161 时间戳参数（`/tr http://timestamp.acs.microsoft.com /td SHA256`），确保证书 3 天过期后签名依旧受 Windows 永久信任；Dlib 提取显式锁定 `bin/x64/` 架构，消除与 64 位 signtool 的架构错配隐患。
+- **fix(ui)**：设置页「Clash 内核」弹窗在当前为兼容内核时，禁用「升级」按钮，消除误触弹出的后端拦截报错。
+- **fix(tray)**：将托盘原生菜单弹出保护时间窗由 10 秒调整为 3 秒，提升外部点击关闭后的状态刷新响应灵敏度；文档补充上游 issue #8159 关于 muda 16 位 ID 溢出的最新定位说明。
+
 ## v2.5.8-compat.6（2026-10-06，提交 d66bb23）
 
 - **chore(sync)**：合并官方 `dev`（10 个提交），含多项 Windows 实际修复——单实例锁文件权限原地修复（`4a0882fc`）、不再等待无法随 Windows 启动的服务（`57c54840`）、代理组内 provider 成员按组解析（`a9a3cfa3`）、混合端口编辑改用保存值而非会话回退（`7cc6c1ed`），以及 npm/cargo 依赖与 Rust 1.99 工具链更新。

@@ -129,7 +129,11 @@ export function ClashCoreViewer({ ref }: { ref?: Ref<DialogRef> }) {
               startIcon={<SwitchAccessShortcutRounded />}
               loadingPosition="start"
               loading={upgrading}
-              disabled={restarting || changingCore !== null}
+              disabled={
+                restarting ||
+                changingCore !== null ||
+                clash_core === 'verge-mihomo-compat'
+              }
               sx={{ marginRight: '8px' }}
               onClick={onUpgrade}
             >

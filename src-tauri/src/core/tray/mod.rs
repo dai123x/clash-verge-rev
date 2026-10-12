@@ -45,11 +45,12 @@ const TRAY_CLICK_DEBOUNCE_MS: u64 = 300;
 pub const TRAY_ID: &str = "clash-verge-rev-tray";
 
 /// Windows 托盘菜单为系统原生弹出菜单，弹出期间主线程可能正运行其模态循环。
-/// 在这个时间窗内跳过 set_menu，避免菜单显示期间被销毁/替换导致点击事件丢失
-/// （参见 #5520 / #7131：托盘菜单频繁重建后所有点击静默失效）。
-const TRAY_MENU_OPEN_GUARD_MS: u64 = 10_000;
+/// 在这个时间窗内跳过 set_menu，避免菜单显示期间被销毁/替换导致点击事件丢失。
+/// 注：上游 issue #8159 根因包含 muda 库对菜单项 ID 在 Windows WM_COMMAND 下超过 16 位（65535）截断的问题；
+/// 此处的去重与守护可大幅减缓 ID 消耗速率，配合上游后续的 ID 回收机制达到长期稳定。
+const TRAY_MENU_OPEN_GUARD_MS: u64 = 3_000;
 /// 延迟重试菜单更新的轮询间隔。
-const TRAY_MENU_RETRY_TICK_MS: u64 = 1_000;
+const TRAY_MENU_RETRY_TICK_MS: u64 = 500;
 
 /// 托盘菜单中一个订阅项（uid + 显示名 + 是否当前）。
 #[derive(Clone, PartialEq, Eq, Serialize)]

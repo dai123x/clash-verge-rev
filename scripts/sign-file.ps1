@@ -75,7 +75,11 @@ if (-not (Test-Path $extracted)) {
   Invoke-WebRequest "https://api.nuget.org/v3-flatcontainer/microsoft.trusted.signing.client/$version/microsoft.trusted.signing.client.$version.nupkg" -OutFile $nupkg
   Expand-Archive -Path $nupkg -DestinationPath $extracted -Force
 }
-$dlib = Get-ChildItem $extracted -Recurse -Filter 'Azure.CodeSigning.Dlib.dll' | Select-Object -First 1
+$dlib = Get-ChildItem $extracted -Recurse -Filter 'Azure.CodeSigning.Dlib.dll' |
+  Where-Object { $_.FullName -match '[\\/]x64[\\/]' } | Select-Object -First 1
+if (-not $dlib) {
+  $dlib = Get-ChildItem $extracted -Recurse -Filter 'Azure.CodeSigning.Dlib.dll' | Select-Object -First 1
+}
 if (-not $dlib) {
   Write-Error "[sign-file] Azure.CodeSigning.Dlib.dll not found in Microsoft.Trusted.Signing.Client $version"
   exit 1
@@ -89,5 +93,5 @@ $metaPath = Join-Path ([IO.Path]::GetTempPath()) 'ts-signing-metadata.json'
 } | ConvertTo-Json | Set-Content -Path $metaPath -Encoding ascii
 
 Write-Host "[sign-file] signing $Path via Azure Trusted Signing ($account/$certProfile)"
-& $signtool sign /fd SHA256 /dlib $dlib.FullName /dmdf $metaPath $Path
+& $signtool sign /v /fd SHA256 /tr "http://timestamp.acs.microsoft.com" /td SHA256 /dlib $dlib.FullName /dmdf $metaPath $Path
 exit $LASTEXITCODE
