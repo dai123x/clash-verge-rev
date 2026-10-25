@@ -207,7 +207,7 @@ jobs:
       - name: Install Rust Stable
         uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: '1.99.0'
+          toolchain: '1.99.1'
           targets: ${{ matrix.target }}
 
       - name: Add Rust Target
@@ -233,7 +233,7 @@ jobs:
       - name: Install Node
         uses: actions/setup-node@v7
         with:
-          node-version: '24.21.0'
+          node-version: '24.22.1'
 
       - uses: pnpm/action-setup@v6
         name: Install pnpm
@@ -247,7 +247,7 @@ jobs:
 
       - name: Add Rust Target
         run: |
-          rustup target add ${{ matrix.target }} --toolchain 1.99.0 || rustup target add ${{ matrix.target }}
+          rustup target add ${{ matrix.target }} --toolchain 1.99.1 || rustup target add ${{ matrix.target }}
           rustup target list --installed
           echo "Rust target ${{ matrix.target }} installed."
 
@@ -314,7 +314,7 @@ jobs:
       - name: Install Rust Stable
         uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: '1.99.0'
+          toolchain: '1.99.1'
           targets: ${{ matrix.target }}
 
       - name: Add Rust Target
@@ -334,7 +334,7 @@ jobs:
       - name: Install Node
         uses: actions/setup-node@v7
         with:
-          node-version: '24.21.0'
+          node-version: '24.22.1'
 
       - name: Install pnpm
         uses: pnpm/action-setup@v6
@@ -392,7 +392,7 @@ jobs:
 
       - name: Add Rust Target
         run: |
-          rustup target add ${{ matrix.target }} --toolchain 1.99.0 || rustup target add ${{ matrix.target }}
+          rustup target add ${{ matrix.target }} --toolchain 1.99.1 || rustup target add ${{ matrix.target }}
           rustup target list --installed
           echo "Rust target ${{ matrix.target }} installed."
 
@@ -449,7 +449,7 @@ jobs:
       - name: Install Rust Stable
         uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: '1.99.0'
+          toolchain: '1.99.1'
           targets: ${{ matrix.target }}
 
       - name: Add Rust Target
@@ -469,7 +469,7 @@ jobs:
       - name: Install Node
         uses: actions/setup-node@v7
         with:
-          node-version: '24.21.0'
+          node-version: '24.22.1'
 
       - uses: pnpm/action-setup@v6
         name: Install pnpm
@@ -490,7 +490,7 @@ jobs:
 
       - name: Add Rust Target
         run: |
-          rustup target add ${{ matrix.target }} --toolchain 1.99.0 || rustup target add ${{ matrix.target }}
+          rustup target add ${{ matrix.target }} --toolchain 1.99.1 || rustup target add ${{ matrix.target }}
           rustup target list --installed
           echo "Rust target ${{ matrix.target }} installed."
 
@@ -550,7 +550,7 @@ jobs:
       - name: Install Node
         uses: actions/setup-node@v7
         with:
-          node-version: '24.21.0'
+          node-version: '24.22.1'
 
       - uses: pnpm/action-setup@v6
         name: Install pnpm
@@ -576,7 +576,7 @@ jobs:
       - name: Install Node
         uses: actions/setup-node@v7
         with:
-          node-version: '24.21.0'
+          node-version: '24.22.1'
 
       - uses: pnpm/action-setup@v6
         name: Install pnpm
@@ -641,7 +641,7 @@ jobs:
       - name: Install Node
         uses: actions/setup-node@v7
         with:
-          node-version: '24.21.0'
+          node-version: '24.22.1'
 
       - uses: pnpm/action-setup@v6
         name: Install pnpm

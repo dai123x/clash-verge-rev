@@ -1,3 +1,4 @@
+use crate::core::notify::NoticeStatus;
 use anyhow::Result;
 use clash_verge_draft::DraftTransaction;
 use serde::{Deserialize, Serialize};
@@ -105,10 +106,11 @@ impl DnsOverrideState {
     }
 }
 
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+#[derive(Debug, Clone, Default, Deserialize, Serialize, specta::Type)]
 pub struct ProfileDnsSettings {
     pub enabled: bool,
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[specta(type = Option<std::string::String>)]
     pub confirmation: Option<String>,
 }
 
@@ -138,12 +140,13 @@ impl Config {
         }
         // The runtime is already committed; a disk failure cannot undo its effective settings.
         transaction.commit();
-        Handle::refresh_verge();
         if state.requested && !state.enabled {
             PENDING_DNS_OVERRIDE_NOTICE.store(true, Ordering::Relaxed);
-            Handle::notice_message("dns_override::auto_disabled", "");
+            Handle::notice(NoticeStatus::DnsOverrideAutoDisabled, "");
         }
-        verge.data_arc().save_file().await
+        let result = verge.data_arc().save_file().await;
+        Handle::refresh_verge();
+        result
     }
 }
 
