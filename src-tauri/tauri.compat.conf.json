@@ -4,7 +4,14 @@
     "windows": {
       "signCommand": {
         "cmd": "powershell.exe",
-        "args": ["-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "scripts/sign-file.ps1", "%1"]
+        "args": [
+          "-NoProfile",
+          "-ExecutionPolicy",
+          "Bypass",
+          "-File",
+          "scripts/sign-file.ps1",
+          "%1"
+        ]
       }
     }
   },

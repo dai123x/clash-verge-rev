@@ -114,7 +114,11 @@ export async function ensureDevelopmentService({
   )?.[1]
   if (!host) throw new Error('rustc did not report its host target')
   const args = ['--prepare-install', '--ensure']
-  for (const name of ['verge-mihomo', 'verge-mihomo-alpha', 'verge-mihomo-compat']) {
+  for (const name of [
+    'verge-mihomo',
+    'verge-mihomo-alpha',
+    'verge-mihomo-compat',
+  ]) {
     args.push(
       '--core',
       `${name}${extension}`,
