@@ -1,4 +1,4 @@
-use crate::config::{IProfilePreview, IVerge};
+use crate::config::IVerge;
 use crate::core::lightweight;
 use crate::core::tray::menu_def::TrayAction;
 use crate::process::AsyncHandler;
