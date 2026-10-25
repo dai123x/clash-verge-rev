@@ -9,7 +9,7 @@
           "-ExecutionPolicy",
           "Bypass",
           "-File",
-          "scripts/sign-file.ps1",
+          "../scripts/sign-file.ps1",
           "%1"
         ]
       }

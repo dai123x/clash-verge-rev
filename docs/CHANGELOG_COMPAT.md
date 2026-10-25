@@ -36,6 +36,7 @@
 - **fix(ui)**：设置页「Clash 内核」弹窗在当前为兼容内核时，禁用「升级」按钮，消除误触弹出的后端拦截报错。
 - **fix(tray)**：将托盘原生菜单弹出保护时间窗由 10 秒调整为 3 秒，提升外部点击关闭后的状态刷新响应灵敏度；文档补充上游 issue #8159 关于 muda 16 位 ID 溢出的最新定位说明。
 - **fix(ci)**：`build-compat.yml` 的构建环境对齐仓库自身声明——Rust 1.98.1 → **1.99.1**（`rust-toolchain.toml` 与上游 `release.yml` 均已升到 1.99.1，上游代码也已开始使用 1.99 稳定 API，旧工具链会直接编译失败）、Node 24.21.0 → **24.22.1**；同时修掉 `scripts/dev-service.mjs` 与 `src-tauri/tauri.compat.conf.json` 的 biome 格式告警（`pnpm format:check` 此前会红）。
+- **fix(build)**：修复兼容版**一直无法打包**的问题——`bundle.windows.signCommand` 里签名脚本写的是 `scripts/sign-file.ps1`，但 Tauri CLI 在打包前会 `set_current_dir(src-tauri)`，相对路径因此指向 `src-tauri/scripts/…`（不存在），安装包阶段直接报 `The argument 'scripts/sign-file.ps1' to the -File parameter does not exist`。改为 `../scripts/sign-file.ps1`（Tauri 会把它转成绝对路径）。**该缺陷从 compat.6 之后引入签名时即存在，此前从未真正打包成功过。**
 - **fix(ci)**：修好本 fork 在 CI 上的两处红灯——① 合并上游时 `core/tray/mod.rs` 采纳了上游新增的 `IProfilePreview` 导入，但本 fork 的托盘实现并未使用它，`clippy -D warnings` 直接编译失败（已移除该导入）；② 上游新增的 `contract-parity` 任务用占位文件喂 `tauri-build`，占位清单里没有本 fork 新增的 `verge-mihomo-compat` sidecar，导致生成前端契约时构建脚本报 `resource path ... doesn't exist`（已补进清单）。
 
 ## v2.5.8-compat.6（2026-10-06，提交 d66bb23）
