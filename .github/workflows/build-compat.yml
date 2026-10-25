@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       tag_name:
-        description: 'Release Tag Name (e.g. v2.5.8-compat.1)'
+        description: 'Release Tag Name (e.g. v2.5.9-compat.1)'
         required: false
-        default: 'v2.5.8-compat.1'
+        default: 'v2.5.9-compat.1'
   push:
     tags:
       - 'v*-compat*'
@@ -68,7 +68,7 @@ jobs:
           releaseBody: |
             ## 🚀 Clash Verge Rev Compat Edition（双内核兼容版）
 
-            本版本在官方 Clash Verge Rev（v2.5.8 代码基线）的基础上，额外内置 **v2.5.1 稳定兼容内核（Mihomo v1.19.25）**，用于解决部分机场订阅在新版内核下 **节点丢失 / 显示 Unknown / 解析超时** 的问题。客户端功能与官方最新版完全一致，无需降级、无需改动订阅，一键切换内核即可恢复正常。
+            本版本在官方 Clash Verge Rev（v2.5.9 代码基线）的基础上，额外内置 **v2.5.1 稳定兼容内核（Mihomo v1.19.25）**，用于解决部分机场订阅在新版内核下 **节点丢失 / 显示 Unknown / 解析超时** 的问题。客户端功能与官方最新版完全一致，无需降级、无需改动订阅，一键切换内核即可恢复正常。
 
             ### ✨ 核心特性
 
@@ -82,8 +82,8 @@ jobs:
 
             | 文件 | 说明 |
             | :--- | :--- |
-            | `Clash.Verge_2.5.8_x64-setup.exe` | Windows 10/11 x64 安装包 |
-            | `Clash.Verge_2.5.8_x64-setup.zip` | 同一安装包的 zip 打包；浏览器出现下载拦截提示时可选此格式，解压后得到相同的 exe |
+            | `Clash.Verge_2.5.9_x64-setup.exe` | Windows 10/11 x64 安装包 |
+            | `Clash.Verge_2.5.9_x64-setup.zip` | 同一安装包的 zip 打包；浏览器出现下载拦截提示时可选此格式，解压后得到相同的 exe |
 
             - 支持从官方版直接**覆盖安装**（安装器会自动停止正在运行的内核与客户端进程）；
             - 如遇异常可先卸载官方版再安装，配置目录不受影响；
@@ -92,11 +92,11 @@ jobs:
             ### 💡 下载提示
 
             - 本流水线已接入 **Azure Trusted Signing 代码签名**：签名凭据生效后的版本，安装包自带数字签名（右键安装包 → 属性 → 数字签名 可查看），Windows 与主流浏览器对 exe 的「不常见下载 / 未知发布者」信誉提示将不再出现；
-            - 若下载的是凭据配置之前的**历史未签名版本**，浏览器可能提示 **「通常不会下载 Clash.Verge_2.5.8_x64-setup.exe。请在打开前确保信任」**：这是标准信誉提示，**不是病毒报告**，点击下载项右侧 `···` → **「保留」**（如出现二次确认选 **「仍然保留」**）即可，或直接下载 **`.zip` 版本**（浏览器不拦截 zip），解压后得到完全相同的安装包；
+            - 若下载的是凭据配置之前的**历史未签名版本**，浏览器可能提示 **「通常不会下载 Clash.Verge_2.5.9_x64-setup.exe。请在打开前确保信任」**：这是标准信誉提示，**不是病毒报告**，点击下载项右侧 `···` → **「保留」**（如出现二次确认选 **「仍然保留」**）即可，或直接下载 **`.zip` 版本**（浏览器不拦截 zip），解压后得到完全相同的安装包；
             - 安装时若遇 SmartScreen 蓝色提示 **「Windows 已保护你的电脑」**：点击 **「更多信息」→「仍要运行」**；
             - 安装包直接发布于 GitHub Releases 官方存储，未经任何第三方改动；对来源有更高要求的用户可参照仓库文档自行构建；
             - 每个版本附带 **`SHA256SUMS.txt`**（sha256sum 格式），下载后可用 `sha256sum -c` 或 `Get-FileHash` 自行校验安装包完整性；
-            - 本仓库已启用 **GitHub 构建来源签名（Artifact Attestations）**：安装包的 sha256 摘要附有 sigstore 签名存证，安装 [GitHub CLI](https://cli.github.com/) 后执行 `gh attestation verify Clash.Verge_2.5.8_x64-setup.exe -R dai123x/clash-verge-rev` 即可验证「文件确由本仓库流水线构建、未被第三方篡改」。
+            - 本仓库已启用 **GitHub 构建来源签名（Artifact Attestations）**：安装包的 sha256 摘要附有 sigstore 签名存证，安装 [GitHub CLI](https://cli.github.com/) 后执行 `gh attestation verify Clash.Verge_2.5.9_x64-setup.exe -R dai123x/clash-verge-rev` 即可验证「文件确由本仓库流水线构建、未被第三方篡改」。
 
             ### 📖 使用方法
 
