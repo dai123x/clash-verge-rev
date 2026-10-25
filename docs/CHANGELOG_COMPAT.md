@@ -35,6 +35,7 @@
 - **fix(ci)**：Azure Trusted Signing 代码签名脚本（`scripts/sign-file.ps1`）补充 RFC 3161 时间戳参数（`/tr http://timestamp.acs.microsoft.com /td SHA256`），确保证书 3 天过期后签名依旧受 Windows 永久信任；Dlib 提取显式锁定 `bin/x64/` 架构，消除与 64 位 signtool 的架构错配隐患。
 - **fix(ui)**：设置页「Clash 内核」弹窗在当前为兼容内核时，禁用「升级」按钮，消除误触弹出的后端拦截报错。
 - **fix(tray)**：将托盘原生菜单弹出保护时间窗由 10 秒调整为 3 秒，提升外部点击关闭后的状态刷新响应灵敏度；文档补充上游 issue #8159 关于 muda 16 位 ID 溢出的最新定位说明。
+- **fix(ci)**：`build-compat.yml` 的构建环境对齐仓库自身声明——Rust 1.98.1 → **1.99.1**（`rust-toolchain.toml` 与上游 `release.yml` 均已升到 1.99.1，上游代码也已开始使用 1.99 稳定 API，旧工具链会直接编译失败）、Node 24.21.0 → **24.22.1**；同时修掉 `scripts/dev-service.mjs` 与 `src-tauri/tauri.compat.conf.json` 的 biome 格式告警（`pnpm format:check` 此前会红）。
 
 ## v2.5.8-compat.6（2026-10-06，提交 d66bb23）
 
