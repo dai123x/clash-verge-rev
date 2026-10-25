@@ -137,8 +137,10 @@ jobs:
           $zip = "$($exe.BaseName).zip"
           Compress-Archive -LiteralPath $exe.FullName -DestinationPath $zip -Force
           # Publish verifiable checksums so users can validate downloads without trusting the browser.
+          # GitHub 上传时会把资产名里的空格换成点（Clash Verge_x.exe -> Clash.Verge_x.exe），
+          # 校验和清单必须写「下载后实际得到的文件名」，否则 sha256sum -c 直接找不到文件。
           $hashLines = Get-FileHash -Algorithm SHA256 -LiteralPath $exe.FullName, $zip |
-            ForEach-Object { "$($_.Hash.ToLower())  $((Split-Path -Path $_.Path -Leaf))" }
+            ForEach-Object { "$($_.Hash.ToLower())  $((Split-Path -Path $_.Path -Leaf) -replace ' ', '.')" }
           Set-Content -Path "SHA256SUMS.txt" -Value $hashLines -Encoding ascii
           Get-Content "SHA256SUMS.txt"
           gh release upload "$env:TAG_NAME" "$zip" "SHA256SUMS.txt" --clobber
