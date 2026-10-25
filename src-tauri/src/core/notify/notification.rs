@@ -1,24 +1,23 @@
+use super::NoticeStatus;
 use clash_verge_logging::{Type, logging};
-use once_cell::sync::Lazy;
 use parking_lot::Mutex;
+#[cfg(test)]
 use serde_json::json;
 use smartstring::alias::String;
-use std::{
-    collections::HashMap,
-    future::Future,
-    sync::atomic::{AtomicU64, Ordering},
-};
+use std::sync::Arc;
+use std::sync::LazyLock;
+use std::{collections::HashMap, future::Future};
 use tauri::{AppHandle, Emitter as _, Manager as _, WebviewWindow};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum FrontendEvent<'a> {
     RefreshClash,
     RefreshVerge,
     RefreshProfiles,
     RefreshProxyConfig,
     NoticeMessage {
-        status: &'a str,
-        message: String,
+        status: NoticeStatus,
+        message: Arc<str>,
     },
     ProfileChanged {
         current_profile_id: &'a String,
@@ -33,7 +32,7 @@ pub enum FrontendEvent<'a> {
         uid: &'a String,
     },
     RunStateChanged {
-        state: serde_json::Value,
+        state: crate::core::runstate::RunStateView,
     },
     PendingFailuresChanged,
     #[cfg(target_os = "linux")]
@@ -44,7 +43,7 @@ pub enum FrontendEvent<'a> {
 
 /// Operation associated with a pending failure.
 #[allow(clippy::enum_variant_names)]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub enum FailedOperation {
     SystemProxyEnable,
@@ -74,12 +73,14 @@ impl FailedOperation {
 }
 
 /// Latest unresolved failure for one stable code.
-#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct PendingFailure {
     /// Stable code used as the table key.
+    #[specta(type = std::string::String)]
     pub code: String,
     /// Full diagnostic context chain.
+    #[specta(type = std::string::String)]
     pub detail: String,
     pub operation: FailedOperation,
     /// Monotonic identity for repeated failures under the same code.
@@ -89,16 +90,23 @@ pub struct PendingFailure {
 /// Non-destructive pending state, indexed by stable code.
 #[derive(Debug, Default)]
 struct FailureTable {
-    entries: Mutex<HashMap<String, PendingFailure>>,
-    sequence: AtomicU64,
+    entries: Mutex<FailureEntries>,
+}
+
+#[derive(Debug, Default)]
+struct FailureEntries {
+    map: HashMap<String, PendingFailure>,
+    sequence: u64,
 }
 
 impl FailureTable {
     fn record(&self, operation: FailedOperation, code: &str, detail: String) {
         // Sequence assignment and replacement must share one ordering lock.
         let mut entries = self.entries.lock();
+        entries.sequence = entries.sequence.wrapping_add(1);
         // Preserve an unanswered request over a later restore.
         let operation = entries
+            .map
             .get(code)
             .filter(|existing| existing.operation.outranks(operation))
             .map_or(operation, |existing| existing.operation);
@@ -106,13 +114,13 @@ impl FailureTable {
             code: code.into(),
             detail,
             operation,
-            sequence: self.sequence.fetch_add(1, Ordering::AcqRel).wrapping_add(1),
+            sequence: entries.sequence,
         };
-        entries.insert(code.into(), failure);
+        entries.map.insert(code.into(), failure);
     }
 
     fn snapshot(&self) -> Vec<PendingFailure> {
-        let mut failures: Vec<PendingFailure> = self.entries.lock().values().cloned().collect();
+        let mut failures: Vec<PendingFailure> = self.entries.lock().map.values().cloned().collect();
         failures.sort_by_key(|failure| failure.sequence);
         failures
     }
@@ -120,17 +128,21 @@ impl FailureTable {
     /// Return whether a guard failure was retired.
     fn retire_guard(&self) -> bool {
         let mut entries = self.entries.lock();
-        let before = entries.len();
-        entries.retain(|_, failure| failure.operation != FailedOperation::SystemProxyGuard);
-        before != entries.len()
+        let before = entries.map.len();
+        entries
+            .map
+            .retain(|_, failure| failure.operation != FailedOperation::SystemProxyGuard);
+        before != entries.map.len()
     }
 
     /// Return whether any proxy failure was retired.
     fn retire_system_proxy(&self, asked: FailedOperation) -> bool {
         let mut entries = self.entries.lock();
-        let before = entries.len();
-        entries.retain(|_, failure| !failure.operation.retired_by_success_of(asked));
-        before != entries.len()
+        let before = entries.map.len();
+        entries
+            .map
+            .retain(|_, failure| !failure.operation.retired_by_success_of(asked));
+        before != entries.map.len()
     }
 }
 
@@ -229,12 +241,13 @@ pub fn what_was_asked() -> FailedOperation {
         .unwrap_or(FailedOperation::SystemProxyRestore)
 }
 
-static PENDING_FAILURES: Lazy<FailureTable> = Lazy::new(FailureTable::default);
+static PENDING_FAILURES: LazyLock<FailureTable> = LazyLock::new(FailureTable::default);
 
 /// A removal has a revision too, so a delayed read cannot restore a resolved failure.
-#[derive(Debug, Default, Clone, serde::Serialize)]
+#[derive(Debug, Default, Clone, serde::Serialize, specta::Type)]
 pub struct SidecarFailureSnapshot {
     pub revision: u64,
+    #[specta(type = Option<std::string::String>)]
     pub detail: Option<String>,
 }
 
@@ -253,7 +266,7 @@ impl SidecarFailureSnapshot {
     }
 }
 
-static SIDECAR_FAILURE: Lazy<Mutex<SidecarFailureSnapshot>> = Lazy::new(Mutex::default);
+static SIDECAR_FAILURE: LazyLock<Mutex<SidecarFailureSnapshot>> = LazyLock::new(Mutex::default);
 
 pub fn sidecar_failure_snapshot() -> SidecarFailureSnapshot {
     SIDECAR_FAILURE.lock().clone()
@@ -277,7 +290,7 @@ pub fn record_failure(operation: FailedOperation, code: &str, detail: impl Into<
 }
 
 pub fn has_pending_failure(code: &str) -> bool {
-    PENDING_FAILURES.entries.lock().contains_key(code)
+    PENDING_FAILURES.entries.lock().map.contains_key(code)
 }
 
 /// Return unresolved failures oldest first without clearing them.
@@ -318,23 +331,7 @@ impl NotificationSystem {
     }
 
     fn serialize_event(event: FrontendEvent) -> (&'static str, Result<serde_json::Value, serde_json::Error>) {
-        match event {
-            FrontendEvent::RefreshClash => ("verge://refresh-clash-config", Ok(json!("yes"))),
-            FrontendEvent::RefreshVerge => ("verge://refresh-verge-config", Ok(json!("yes"))),
-            FrontendEvent::RefreshProfiles => ("verge://refresh-profiles", Ok(json!("yes"))),
-            FrontendEvent::RefreshProxyConfig => ("verge://refresh-proxy-config", Ok(serde_json::Value::Null)),
-            FrontendEvent::NoticeMessage { status, message } => {
-                ("verge://notice-message", serde_json::to_value((status, message)))
-            }
-            FrontendEvent::ProfileChanged { current_profile_id } => ("profile-changed", Ok(json!(current_profile_id))),
-            FrontendEvent::TimerUpdated { profile_index } => ("verge://timer-updated", Ok(json!(profile_index))),
-            FrontendEvent::ProfileUpdateStarted { uid } => ("profile-update-started", Ok(json!({ "uid": uid }))),
-            FrontendEvent::ProfileUpdateCompleted { uid } => ("profile-update-completed", Ok(json!({ "uid": uid }))),
-            FrontendEvent::RunStateChanged { state } => ("verge://run-state-changed", Ok(state)),
-            FrontendEvent::PendingFailuresChanged => ("verge://pending-failures-changed", Ok(serde_json::Value::Null)),
-            #[cfg(target_os = "linux")]
-            FrontendEvent::ThemeChanged { theme } => ("tauri://theme-changed", serde_json::to_value(theme)),
-        }
+        serialize_frontend_event(event)
     }
 
     pub(crate) fn send_event(app_handle: AppHandle, event: FrontendEvent) {
@@ -352,4 +349,123 @@ impl NotificationSystem {
             logging!(warn, Type::Frontend, "Failed to dispatch event on main thread: {err}");
         }
     }
+}
+
+#[cfg(test)]
+mod wire_tests {
+    use super::*;
+
+    #[test]
+    fn frontend_event_wire_contract() -> Result<(), serde_json::Error> {
+        let uid = String::from("profile");
+        for (event, name, payload) in super::sample_frontend_events(&uid) {
+            let (actual_name, actual_payload) = NotificationSystem::serialize_event(event);
+            assert_eq!(actual_name, name);
+            assert_eq!(actual_payload?, payload);
+        }
+        Ok(())
+    }
+}
+
+/// One sample per `FrontendEvent` variant, paired with its wire name and payload.
+#[cfg(test)]
+fn sample_frontend_events(uid: &String) -> Vec<(FrontendEvent<'_>, &'static str, serde_json::Value)> {
+    let state = crate::core::runstate::RunState {
+        health: Default::default(),
+        pending: None,
+        sidecar_allowed: false,
+        mode: crate::core::manager::RunningMode::NotRunning,
+        is_admin: false,
+        op_in_flight: false,
+    }
+    .to_view();
+    vec![
+        (FrontendEvent::RefreshClash, "verge://refresh-clash-config", json!(null)),
+        (FrontendEvent::RefreshVerge, "verge://refresh-verge-config", json!(null)),
+        (FrontendEvent::RefreshProfiles, "verge://refresh-profiles", json!(null)),
+        (
+            FrontendEvent::RefreshProxyConfig,
+            "verge://refresh-proxy-config",
+            json!(null),
+        ),
+        (
+            FrontendEvent::NoticeMessage {
+                status: NoticeStatus::Info,
+                message: Arc::from("ok"),
+            },
+            "verge://notice-message",
+            json!(["info", "ok"]),
+        ),
+        (
+            FrontendEvent::TimerUpdated { profile_index: uid },
+            "verge://timer-updated",
+            json!("profile"),
+        ),
+        (
+            FrontendEvent::RunStateChanged { state: state.clone() },
+            "verge://run-state-changed",
+            serde_json::to_value(state).unwrap_or(serde_json::Value::Null),
+        ),
+        (
+            FrontendEvent::PendingFailuresChanged,
+            "verge://pending-failures-changed",
+            json!(null),
+        ),
+        (
+            FrontendEvent::ProfileChanged {
+                current_profile_id: uid,
+            },
+            "profile-changed",
+            json!("profile"),
+        ),
+        (
+            FrontendEvent::ProfileUpdateStarted { uid },
+            "profile-update-started",
+            json!({"uid": "profile"}),
+        ),
+        (
+            FrontendEvent::ProfileUpdateCompleted { uid },
+            "profile-update-completed",
+            json!({"uid": "profile"}),
+        ),
+    ]
+}
+
+macro_rules! frontend_events {
+    ($( $field:ident: $payload:ty = $name:literal, $pattern:pat => $value:expr; )*) => {
+        #[derive(serde::Serialize, specta::Type)]
+        pub struct VergeEventPayloads {
+            $(#[serde(rename = $name)] pub $field: $payload,)*
+        }
+
+        fn serialize_frontend_event(event: FrontendEvent) -> (&'static str, Result<serde_json::Value, serde_json::Error>) {
+            match event {
+                $($pattern => {
+                    let payload: $payload = $value;
+                    ($name, serde_json::to_value(payload))
+                },)*
+                #[cfg(target_os = "linux")]
+                FrontendEvent::ThemeChanged { theme } => ("tauri://theme-changed", serde_json::to_value(theme)),
+            }
+        }
+    };
+}
+
+frontend_events! {
+    refresh_clash: () = "verge://refresh-clash-config", FrontendEvent::RefreshClash => ();
+    refresh_verge: () = "verge://refresh-verge-config", FrontendEvent::RefreshVerge => ();
+    refresh_profiles: () = "verge://refresh-profiles", FrontendEvent::RefreshProfiles => ();
+    refresh_proxy: () = "verge://refresh-proxy-config", FrontendEvent::RefreshProxyConfig => ();
+    notice: (NoticeStatus, std::string::String) = "verge://notice-message", FrontendEvent::NoticeMessage { status, ref message } => (status, message.to_string());
+    profile_changed: std::string::String = "profile-changed", FrontendEvent::ProfileChanged { current_profile_id } => current_profile_id.to_string();
+    timer_updated: std::string::String = "verge://timer-updated", FrontendEvent::TimerUpdated { profile_index } => profile_index.to_string();
+    profile_started: ProfileUpdatePayload = "profile-update-started", FrontendEvent::ProfileUpdateStarted { uid } => ProfileUpdatePayload { uid: uid.to_string() };
+    profile_completed: ProfileUpdatePayload = "profile-update-completed", FrontendEvent::ProfileUpdateCompleted { uid } => ProfileUpdatePayload { uid: uid.to_string() };
+    run_state: crate::core::runstate::RunStateView = "verge://run-state-changed", FrontendEvent::RunStateChanged { state } => state;
+    pending_failures: () = "verge://pending-failures-changed", FrontendEvent::PendingFailuresChanged => ();
+}
+
+#[derive(serde::Serialize, specta::Type)]
+pub struct ProfileUpdatePayload {
+    pub uid: std::string::String,
 }
